@@ -1,0 +1,13 @@
+tickTime={{getv "/env/tickTime" "2000"}}
+initLimit={{getv "/env/initLimit" "10"}}
+syncLimit={{getv "/env/syncLimit" "5"}}
+dataDir=/data
+clientPort={{getv "/cluster/endpoints/client/port" "2181"}}
+maxClientCnxns={{getv "/env/maxClientCnxns" "1000"}}
+peerType={{getv "/host/role" ""}}
+autopurge.snapRetainCount={{getv "/env/autopurge.snapRetainCount" "3"}}
+autopurge.purgeInterval={{getv "/env/autopurge.purgeInterval" "0"}}
+{{range $nodeId := lsdir "/hosts/participant"}}{{$gsidUrl := printf "/hosts/participant/%s/gsid" $nodeId}}{{$gsid := getv $gsidUrl}}{{$ipUrl := printf "/hosts/participant/%s/ip" $nodeId}}{{$ip := getv $ipUrl}}{{$myNodeId := getv "/host/instance_id"}}
+server.{{$gsid}}={{if eq $nodeId $myNodeId}}0.0.0.0{{else}}{{$ip}}{{end}}:2888:3888{{end}}
+{{range $nodeId := lsdir "/hosts/observer"}}{{$gsidUrl := printf "/hosts/observer/%s/gsid" $nodeId}}{{$gsid := getv $gsidUrl}}{{$ipUrl := printf "/hosts/observer/%s/ip" $nodeId}}{{$ip := getv $ipUrl}}{{$myNodeId := getv "/host/instance_id"}}
+server.{{$gsid}}={{if eq $nodeId $myNodeId}}0.0.0.0{{else}}{{$ip}}{{end}}:2181:3181:observer{{end}}

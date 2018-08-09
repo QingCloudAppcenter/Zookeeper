@@ -1,4 +1,6 @@
+<p align="center">
+  <img src="./logo.png" alt="Logo" />
+</p>
+<h1 align="center">ZooKeeper on QingCloud</h1>
 
-# ZooKeeper App 
-
-[QingCloud - Apache ZooKeeper](https://appcenter.qingcloud.com/apps/app-tg3lbp0a)
+- [Product Page](https://appcenter.qingcloud.com/apps/app-tg3lbp0a)
