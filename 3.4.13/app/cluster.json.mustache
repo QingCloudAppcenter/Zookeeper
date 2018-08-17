@@ -1,0 +1,177 @@
+{
+  "name": {{cluster.name}},
+  "description": {{cluster.description}},
+  "vxnet": {{cluster.vxnet}},
+  "upgrade_policy": [
+    "appv-70gegwmp"
+  ],
+  "upgrade_roles": {
+    "add": [
+      "observer"
+    ],
+    "modify": {
+      "": "participant"
+    }
+  },
+  "nodes": [{
+    "container": {
+      "type": "kvm",
+      "zone": "pek3a",
+      "image": "img-8ub8nfvp"
+    },
+    "role": "participant",
+    "count": {{cluster.participant.count}},
+    "cpu": {{cluster.participant.cpu}},
+    "memory": {{cluster.participant.memory}},
+    "instance_class": {{cluster.participant.instance_class}},
+    "volume": {
+      "size": {{cluster.participant.volume_size}}
+    },
+    "server_id_upper_bound": 255,
+    "services": {
+      "init": {
+        "cmd": "bash -e /opt/zkapp/bin/init.sh"
+      },
+      "start": {
+        "cmd": "bash -e /opt/zkapp/bin/app.sh start"
+      },
+      "stop": {
+        "cmd": "bash -e /opt/zkapp/bin/app.sh stop"
+      },
+      "upgrade": {
+        "cmd": "bash -e /opt/zkapp/bin/init.sh"
+      }
+    },
+    "vertical_scaling_policy": "sequential"
+  }, {
+    "container": {
+      "type": "kvm",
+      "zone": "pek3a",
+      "image": "img-8ub8nfvp"
+    },
+    "role": "observer",
+    "count": {{cluster.observer.count}},
+    "cpu": {{cluster.observer.cpu}},
+    "memory": {{cluster.observer.memory}},
+    "instance_class": {{cluster.observer.instance_class}},
+    "volume": {
+      "size": {{cluster.observer.volume_size}}
+    },
+    "server_id_upper_bound": 255,
+    "services": {
+      "init": {
+        "cmd": "bash -e /opt/zkapp/bin/init.sh"
+      },
+      "start": {
+        "cmd": "bash -e /opt/zkapp/bin/app.sh start"
+      },
+      "stop": {
+        "cmd": "bash -e /opt/zkapp/bin/app.sh stop"
+      },
+      "upgrade": {
+        "cmd": "bash -e /opt/zkapp/bin/init.sh"
+      }
+    },
+    "vertical_scaling_policy": "sequential"
+  }],
+  "endpoints": {
+    "client": {
+      "port": 2181,
+      "protocol": "tcp"
+    },
+    "rest": {
+      "port": 9998,
+      "protocol": "tcp"
+    }
+  },
+  "health_check": {
+    "enable": true,
+    "interval_sec": 60,
+    "timeout_sec": 10,
+    "action_timeout_sec": 30,
+    "healthy_threshold": 2,
+    "unhealthy_threshold": 2,
+    "check_cmd": "bash -e /opt/zkapp/bin/healthcheck.sh",
+    "action_cmd": "bash -e /opt/zkapp/bin/app.sh restart"
+  },
+  "monitor": {
+    "enable": true,
+    "cmd": "bash -e /opt/zkapp/bin/metrics.sh",
+    "items": {
+      "mode": {
+        "unit": "",
+        "value_type": "str",
+        "statistics_type": "latest",
+        "enums": ["L", "F", "O", "S"]
+      },
+      "min": {
+        "unit": "ms",
+        "value_type": "int",
+        "statistics_type": "min",
+        "scale_factor_when_display": 1
+      },
+      "avg": {
+        "unit": "ms",
+        "value_type": "int",
+        "statistics_type": "avg",
+        "scale_factor_when_display": 1
+      },
+      "max": {
+        "unit": "ms",
+        "value_type": "int",
+        "statistics_type": "max",
+        "scale_factor_when_display": 1
+      },
+      "received": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "sent": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "active": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "outstanding": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "znode": {
+        "unit": "znode_count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      }
+    },
+    "groups": {
+      "latency": ["min", "avg", "max"],
+      "throughput": ["received", "sent"],
+      "connections": ["active", "outstanding"]
+    },
+    "display": ["mode", "latency", "throughput", "connections", "znode"],
+    "alarm": ["avg"]
+  },
+  "advanced_actions": ["change_vxnet", "scale_horizontal"],
+  "env": {
+    "zkAdminEnabled": {{env.admin_enabled}},
+    "zkAdminUsername": {{env.admin_username}},
+    "zkAdminPassword": {{env.admin_password}},
+    "tickTime": {{env.tickTime}},
+    "initLimit": {{env.initLimit}},
+    "syncLimit": {{env.syncLimit}},
+    "maxClientCnxns": {{env.maxClientCnxns}},
+    "autopurge.snapRetainCount": {{env.autopurge_snapRetainCount}},
+    "autopurge.purgeInterval": {{env.autopurge_purgeInterval}},
+    "zkVersion": "3.4.13"
+  }
+}

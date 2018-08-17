@@ -1,0 +1,17 @@
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+mainClassName = "com.yunify.qingcloud.appcenter.examples.zookeeper.ClientExample"
+
+dependencies {
+  compile (
+    'org.apache.curator:curator-client:4.0.1',
+    'org.apache.curator:curator-framework:4.0.1',
+  )
+}

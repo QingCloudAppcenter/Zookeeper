@@ -1,0 +1,212 @@
+{
+  "type": "array",
+  "properties": [{
+    "key": "cluster",
+    "description": "cluster properties",
+    "type": "array",
+    "properties": [{
+      "key": "name",
+      "type": "string",
+      "label": "Name",
+      "description": "The name of the ZooKeeper service",
+      "default": "ZooKeeper",
+      "required": "no"
+    }, {
+      "key": "description",
+      "type": "string",
+      "label": "Description",
+      "description": "The description of the ZooKeeper service",
+      "default": "",
+      "required": "no"
+    }, {
+      "key": "vxnet",
+      "label": "VxNet",
+      "description": "Choose a vxnet to join",
+      "type": "string",
+      "default": "",
+      "required": "yes"
+    }, {
+      "key": "participant",
+      "label": "Participant Node",
+      "description": "Properties for participant nodes",
+      "type": "array",
+      "properties": [{
+        "key": "cpu",
+        "label": "CPU",
+        "description": "CPUs of each node",
+        "type": "integer",
+        "default": 1,
+        "range": [1, 2, 4, 8, 16],
+        "required": "yes"
+      }, {
+        "key": "memory",
+        "label": "Memory",
+        "description": "Memory of each node (in MiB)",
+        "type": "integer",
+        "default": 2048,
+        "range": [1024, 2048, 4096, 8192, 16384, 32768, 49152],
+        "required": "yes"
+      }, {
+        "key": "instance_class",
+        "label": "Instance Class",
+        "description": "The instance type for the cluster to run, such as high performance, high performance plus",
+        "type": "integer",
+        "default": 0,
+        "range": [0, 1],
+        "required": "yes"
+      }, {
+        "key": "count",
+        "label": "Node Count",
+        "description": "Number of nodes",
+        "type": "integer",
+        "default": 3,
+        "range": [ 1, 3, 5, 7, 9 ],
+        "required": "yes"
+      }, {
+        "key": "volume_size",
+        "label": "Volume Size",
+        "description": "The volume size for each node",
+        "type": "integer",
+        "default": 10,
+        "required": "yes"
+      }]
+    }, {
+      "key": "observer",
+      "label": "Observer Node",
+      "description": "Properties for observer nodes",
+      "type": "array",
+      "properties": [{
+        "key": "cpu",
+        "label": "CPU",
+        "description": "CPUs of each node",
+        "type": "integer",
+        "default": 1,
+        "range": [1, 2, 4, 8, 16],
+        "required": "yes"
+      }, {
+        "key": "memory",
+        "label": "Memory",
+        "description": "Memory of each node (in MiB)",
+        "type": "integer",
+        "default": 2048,
+        "range": [1024, 2048, 4096, 8192, 16384, 32768, 49152],
+        "required": "yes"
+      }, {
+        "key": "instance_class",
+        "label": "Instance Class",
+        "description": "The instance type for the cluster to run, such as high performance, high performance plus",
+        "type": "integer",
+        "default": 0,
+        "range": [0, 1],
+        "required": "yes"
+      }, {
+        "key": "count",
+        "label": "Node Count",
+        "description": "Number of nodes",
+        "type": "integer",
+        "default": 0,
+        "min": 0,
+        "max": 20,
+        "required": "yes"
+      }, {
+        "key": "volume_size",
+        "label": "Volume Size",
+        "description": "The volume size for each node",
+        "type": "integer",
+        "default": 10,
+        "required": "yes"
+      }]
+    }]
+  }, {
+    "key": "env",
+    "description": "Application configuration properties",
+    "type": "array",
+    "properties": [{
+      "key": "admin_enabled",
+      "label": "Admin Enabled?",
+      "description": "Enable admin user to administrate ZooKeeper cluster, ZNodes, and ACLs",
+      "type": "boolean",
+      "changeable": true,
+      "default": false,
+      "required": "yes"
+    }, {
+      "key": "admin_username",
+      "label": "Admin Username",
+      "description": "The username of the admin user (ignore if disabled), can contain lowercase letters and digits, and must start with lowercase letters, with 3-12 characters in total",
+      "type": "string",
+      "changeable": true,
+      "default": "super",
+      "pattern": "[a-z][a-z0-9]{3,12}",
+      "required": "yes"
+    }, {
+      "key": "admin_password",
+      "label": "Admin Password",
+      "description": "The password of the admin user (ignore if disabled), can contain uppercase & lowercase letters, digits, and the following 10 special characters !@#$%^&*() with 4-32 characters in total",
+      "type": "password",
+      "changeable": true,
+      "default": "Super12345",
+      "pattern": "[A-Za-z0-9!@#$%^&*()]{4,32}",
+      "required": "yes"
+    }, {
+      "key": "tickTime",
+      "label": "tickTime",
+      "description": "The length of a single tick, which is the basic time unit used by ZooKeeper, as measured in milliseconds; it is used to regulate heartbeats, and timeouts; for example, the minimum session timeout will be two ticks",
+      "type": "integer",
+      "changeable": true,
+      "default": 2000,
+      "min": 1,
+      "max": 1000000,
+      "required": "no"
+    }, {
+      "key": "initLimit",
+      "label": "initLimit",
+      "description": "Amount of time, in ticks (see tickTime), to allow followers to connect and sync to a leader; increase this value as needed, if the amount of data managed by ZooKeeper is large",
+      "type": "integer",
+      "changeable": true,
+      "default": 10,
+      "min": 1,
+      "max": 1000000,
+      "required": "no"
+    }, {
+      "key": "syncLimit",
+      "label": "syncLimit",
+      "description": "Amount of time, in ticks (see tickTime), to allow followers to sync with ZooKeeper; if followers fall too far behind a leader, they will be dropped",
+      "type": "integer",
+      "changeable": true,
+      "default": 5,
+      "min": 1,
+      "max": 1000000,
+      "required": "no"
+    }, {
+      "key": "maxClientCnxns",
+      "label": "maxClientCnxns",
+      "description": "Limits the number of concurrent connections (at the socket level) that a single client, identified by IP address, may make to a single member of the ZooKeeper ensemble; this is used to prevent certain classes of DoS attacks, including file descriptor exhaustion; setting this to 0 entirely removes the limit on concurrent connections",
+      "type": "integer",
+      "changeable": true,
+      "default": 1000,
+      "min": 0,
+      "max": 1000000,
+      "required": "no"
+    }, {
+      "key": "autopurge_snapRetainCount",
+      "label": "autopurge.snapRetainCount",
+      "description": "When enabled, ZooKeeper auto purge feature retains the autopurge.snapRetainCount most recent snapshots and the corresponding transaction logs in the dataDir and dataLogDir respectively and deletes the rest",
+      "type": "integer",
+      "changeable": true,
+      "default": 3,
+      "min": 3,
+      "max": 100000000,
+      "required": "no"
+    }, {
+      "key": "autopurge_purgeInterval",
+      "label": "autopurge.purgeInterval",
+      "description": "The time interval in hours for which the purge task has to be triggered; set to a positive integer (1 and above) to enable the auto purging",
+      "type": "integer",
+      "changeable": true,
+      "default": 0,
+      "min": 0,
+      "max": 720,
+      "required": "no"
+    }]
+  }]
+}

@@ -1,0 +1,65 @@
+#!/usr/bin/env bash -e
+
+zkVersion="{{getv "/env/zkVersion"}}"
+zkClientPort="{{getv "/cluster/endpoints/client/port" "2181"}}"
+zkRole="{{getv "/host/role"}}"
+zkAdminEnabled="{{getv "/env/zkAdminEnabled"}}"
+zkAdminUsername="{{getv "/env/zkAdminUsername"}}"
+zkAdminPassword="{{getv "/env/zkAdminPassword"}}"
+
+# Calculate available physical memory to allocate to JVM.
+free=`grep MemFree /proc/meminfo | awk '{print $2}'`
+buffer=`grep Buffers /proc/meminfo | awk '{print $2}'`
+cache=`grep ^Cached /proc/meminfo | awk '{print $2}'`
+freemem=`expr $free + $buffer + $cache`
+total_free=`expr $freemem / 1024 - 90`
+if [ $total_free -le 0 ]
+then
+  total_free=20
+fi
+
+zkImage="dockerhub.qingcloud.com/qingcloud/zookeeper:${zkVersion}"
+if [ "$zkAdminEnabled" = "true" ]; then
+  # Generate digest from format of "user:password->user:encrypted".
+  digest=`docker run -i --rm ${zkImage} /usr/bin/java -cp lib/slf4j-api-1.7.25.jar:zookeeper-${zkVersion}.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider "${zkAdminUsername}:${zkAdminPassword}" 2> /dev/null | awk -F'->' '{print $2}'`
+  digestFlags="-Dzookeeper.DigestAuthenticationProvider.superDigest=${digest}"
+fi
+
+LOGS_DIR=/data/zookeeper/logs
+
+if [ "$zkRole" = "observer" ]; then
+  PORTS_ARG="-p 3181:3181"
+else
+  PORTS_ARG="-p 2888:2888 -p 3888:3888"
+fi
+
+function zkStart() {
+    echo "{{getv "/host/gsid"}}" > /data/zookeeper/myid
+    docker run -dit --rm --network zkapp --name zkserver -v /opt/zkapp/conf/server:/conf -v /data/zookeeper:/data -v $LOGS_DIR:/logs -e SERVER_JVMFLAGS="$digestFlags" -e JVMFLAGS="-Xmx${total_free}m" -e ZOO_LOG_DIR=/logs -e ZOO_LOG4J_PROP="INFO,ROLLINGFILE" -p ${zkClientPort}:${zkClientPort} $PORTS_ARG ${zkImage}
+}
+
+function zkStop() {
+  if [ "$(docker ps -q -f name=zkserver)" ]; then
+    docker stop zkserver
+  fi
+}
+
+function zkRestart() {
+  zkStop
+  zkStart
+}
+
+function zkRestStart() {
+  docker run -dit --rm --network zkapp --name zkrest -v /opt/zkapp/conf/rest:/conf -v /data/zookeeper/logs:/logs -p 9998:9998 dockerhub.qingcloud.com/qingcloud/zookeeper-rest:${zkVersion}
+}
+
+function zkRestStop() {
+  if [ "$(docker ps -q -f name=zkrest)" ]; then
+    docker stop zkrest
+  fi
+}
+
+function zkRestRestart() {
+  zkRestStop
+  zkRestStart
+}

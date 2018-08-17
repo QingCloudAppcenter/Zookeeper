@@ -1,0 +1,7 @@
+[template]
+src = "common.sh.tmpl"
+dest = "/opt/zkapp/bin/common.sh"
+keys = [
+  "/",
+]
+reload_cmd = "bash -e /opt/zkapp/bin/app.sh restart"
