@@ -2,7 +2,6 @@
 
 zkVersion="{{getv "/env/zkVersion"}}"
 zkClientPort="{{getv "/cluster/endpoints/client/port" "2181"}}"
-zkRole="{{getv "/host/role"}}"
 zkAdminEnabled="{{getv "/env/zkAdminEnabled"}}"
 zkAdminUsername="{{getv "/env/zkAdminUsername"}}"
 zkAdminPassword="{{getv "/env/zkAdminPassword"}}"
@@ -26,16 +25,11 @@ if [ "$zkAdminEnabled" = "true" ]; then
 fi
 
 LOGS_DIR=/data/zookeeper/logs
-
-if [ "$zkRole" = "observer" ]; then
-  PORTS_ARG="-p 3181:3181"
-else
-  PORTS_ARG="-p 2888:2888 -p 3888:3888"
-fi
+PORTS_ARG="-p ${zkClientPort}:${zkClientPort} -p 2888:2888 -p 3888:3888"
 
 function zkStart() {
     echo "{{getv "/host/gsid"}}" > /data/zookeeper/myid
-    docker run -dit --rm --network zkapp --name zkserver -v /opt/zkapp/conf/server:/conf -v /data/zookeeper:/data -v $LOGS_DIR:/logs -e SERVER_JVMFLAGS="$digestFlags" -e JVMFLAGS="-Xmx${total_free}m" -e ZOO_LOG_DIR=/logs -e ZOO_LOG4J_PROP="INFO,ROLLINGFILE" -p ${zkClientPort}:${zkClientPort} $PORTS_ARG ${zkImage}
+    docker run -dit --rm --network zkapp --name zkserver -v /opt/zkapp/conf/server:/conf -v /data/zookeeper:/data -v $LOGS_DIR:/logs -e SERVER_JVMFLAGS="$digestFlags" -e JVMFLAGS="-Xmx${total_free}m" -e ZOO_LOG_DIR=/logs -e ZOO_LOG4J_PROP="INFO,ROLLINGFILE" $PORTS_ARG ${zkImage}
 }
 
 function zkStop() {
