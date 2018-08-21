@@ -1,8 +1,0 @@
-# crontab entries for zookeeper service
-    
-SHELL=/bin/bash
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-    
-*/10 * * * *   root /opt/zookeeper/bin/purge-data.sh >/dev/null 2>&1
-* * * * * root /opt/zookeeper/bin/check-rest-server.sh >/dev/null 2>&1; sleep 30; /opt/zookeeper/bin/check-rest-server.sh >/dev/null 2>&1
-

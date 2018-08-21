@@ -1,0 +1,9 @@
+{
+  "Participant Node": "ZooKeeper Node",
+  "mode": "Mode (L:Leader,F:Follower,S:Standalone)",
+  "min": "Minimum Latency",
+  "avg": "Average Latency",
+  "max": "Maximum Latency",
+  "active": "Active Connections",
+  "outstanding": "Pending Connections"
+}

@@ -26,7 +26,7 @@
       "default": "",
       "required": "yes"
     }, {
-      "key": "participant",
+      "key": "zk_node",
       "label": "Participant Node",
       "description": "Properties for participant nodes",
       "type": "array",
@@ -61,52 +61,6 @@
         "type": "integer",
         "default": 3,
         "range": [ 1, 3, 5, 7, 9 ],
-        "required": "yes"
-      }, {
-        "key": "volume_size",
-        "label": "Volume Size",
-        "description": "The volume size for each node",
-        "type": "integer",
-        "default": 10,
-        "required": "yes"
-      }]
-    }, {
-      "key": "observer",
-      "label": "Observer Node",
-      "description": "Properties for observer nodes",
-      "type": "array",
-      "properties": [{
-        "key": "cpu",
-        "label": "CPU",
-        "description": "CPUs of each node",
-        "type": "integer",
-        "default": 1,
-        "range": [1, 2, 4, 8, 16],
-        "required": "yes"
-      }, {
-        "key": "memory",
-        "label": "Memory",
-        "description": "Memory of each node (in MiB)",
-        "type": "integer",
-        "default": 2048,
-        "range": [1024, 2048, 4096, 8192, 16384, 32768, 49152],
-        "required": "yes"
-      }, {
-        "key": "instance_class",
-        "label": "Instance Class",
-        "description": "The instance type for the cluster to run, such as high performance, high performance plus",
-        "type": "integer",
-        "default": 0,
-        "range": [0, 1],
-        "required": "yes"
-      }, {
-        "key": "count",
-        "label": "Node Count",
-        "description": "Number of nodes",
-        "type": "integer",
-        "default": 0,
-        "min": 0,
-        "max": 20,
         "required": "yes"
       }, {
         "key": "volume_size",
