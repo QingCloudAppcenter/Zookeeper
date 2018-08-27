@@ -20,16 +20,15 @@ fi
 zkImage="dockerhub.qingcloud.com/qingcloud/zookeeper:${zkVersion}"
 if [ "$zkAdminEnabled" = "true" ]; then
   # Generate digest from format of "user:password->user:encrypted".
-  digest=`docker run -i --rm ${zkImage} /usr/bin/java -cp lib/slf4j-api-1.7.25.jar:zookeeper-${zkVersion}.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider "${zkAdminUsername}:${zkAdminPassword}" 2> /dev/null | awk -F'->' '{print $2}'`
+  digest=`docker run -i --rm --network host ${zkImage} /usr/bin/java -cp lib/slf4j-api-1.7.25.jar:zookeeper-${zkVersion}.jar org.apache.zookeeper.server.auth.DigestAuthenticationProvider "${zkAdminUsername}:${zkAdminPassword}" 2> /dev/null | awk -F'->' '{print $2}'`
   digestFlags="-Dzookeeper.DigestAuthenticationProvider.superDigest=${digest}"
 fi
 
 LOGS_DIR=/data/zookeeper/logs
-PORTS_ARG="-p ${zkClientPort}:${zkClientPort} -p 2888:2888 -p 3888:3888"
 
 function zkStart() {
     echo "{{getv "/host/gsid"}}" > /data/zookeeper/myid
-    docker run -dit --rm --network zkapp --name zkserver -v /opt/zkapp/conf/server:/conf -v /data/zookeeper:/data -v $LOGS_DIR:/logs -e SERVER_JVMFLAGS="$digestFlags" -e JVMFLAGS="-Xmx${total_free}m" -e ZOO_LOG_DIR=/logs -e ZOO_LOG4J_PROP="INFO,ROLLINGFILE" $PORTS_ARG ${zkImage}
+    docker run -dit --rm --network host --name zkserver -v /opt/zkapp/conf/server:/conf -v /data/zookeeper:/data -v $LOGS_DIR:/logs -e SERVER_JVMFLAGS="$digestFlags" -e JVMFLAGS="-Xmx${total_free}m" -e ZOO_LOG_DIR=/logs -e ZOO_LOG4J_PROP="INFO,ROLLINGFILE" ${zkImage}
 }
 
 function zkStop() {
@@ -44,7 +43,7 @@ function zkRestart() {
 }
 
 function zkRestStart() {
-  docker run -dit --rm --network zkapp --name zkrest -v /opt/zkapp/conf/rest:/conf -v /data/zookeeper/logs:/logs -p 9998:9998 dockerhub.qingcloud.com/qingcloud/zookeeper-rest:${zkVersion}
+  docker run -dit --rm --network host --name zkrest -v /opt/zkapp/conf/rest:/conf -v /data/zookeeper/logs:/logs dockerhub.qingcloud.com/qingcloud/zookeeper-rest:${zkVersion}
 }
 
 function zkRestStop() {
