@@ -2,10 +2,7 @@
   "name": {{cluster.name}},
   "description": {{cluster.description}},
   "vxnet": {{cluster.vxnet}},
-  "upgrade_policy": [
-    "appv-70gegwmp",
-    "appv-dm3ltpxw"
-  ],
+  "multi_zone_policy": "round_robin",
   "nodes": [{
     "container": {
       "type": "kvm",
