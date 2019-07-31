@@ -1,0 +1,16 @@
+---
+- name: zk tasks
+  hosts: all
+  vars:
+    target_env: "{{ lookup('env', 'target') }}"
+  tasks:
+  - include_role:
+      name: "{{ name }}"
+    loop:
+    - appctl
+    - caddy
+    - java
+    - jq
+    - zookeeper
+    loop_control:
+      loop_var: name
