@@ -1,0 +1,153 @@
+---
+- name: set vars
+  set_fact:
+    zk_version: 3.5.6
+    zkrest_version: 3.4.14
+
+- name: add the service group
+  group:
+    name: svc
+    state: present
+
+- name: add the service user
+  user:
+    name: zookeeper
+    groups: svc
+    shell: /sbin/nologin
+    create_home: no
+    append: yes
+    comment: "Service User"
+    state: present
+
+- name: create directories
+  file:
+    path: /opt/{{ service }}
+    state: directory
+  loop:
+  - zookeeper/{{ zk_version }}
+  - zkrest/{{ zkrest_version }}
+  loop_control:
+    loop_var: service
+
+- name: link zookeeper binary dir
+  file:
+    src: "{{ zk_version }}"
+    dest: /opt/zookeeper/current
+    state: link
+
+- name: link zkrest binary dir
+  file:
+    src: "{{ zkrest_version }}"
+    dest: /opt/zkrest/current
+    state: link
+
+- name: prepare download dir
+  file:
+    path: "{{ role_path }}/files/tmp"
+    state: directory
+  delegate_to: localhost
+
+- name: download binary
+  vars:
+    path: "{{ role_path }}/files/tmp/zookeeper-{{ zk_version }}.tgz"
+  get_url:
+    url: https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}-bin.tar.gz
+    dest: "{{ path }}"
+  delegate_to: localhost
+  when: path is not exists
+  run_once: True
+
+- name: install zk binaries
+  unarchive:
+    src: roles/{{ role_name }}/files/tmp/zookeeper-{{ zk_version }}.tgz
+    dest: /opt/zookeeper/current/
+    extra_opts:
+    - --strip-components=1
+    owner: root
+    group: root
+    creates: /opt/zookeeper/current/bin/zkServer.sh
+
+- name: extract zkrest
+  vars:
+    path: "{{ role_path }}/files/tmp"
+  unarchive:
+    src: https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-{{ zkrest_version }}/zookeeper-{{ zkrest_version }}.tar.gz
+    dest: "{{ playbook_dir }}/roles/{{ role_name }}/files/tmp"
+    remote_src: yes
+    creates: "{{ playbook_dir }}/roles/{{ role_name }}/files/tmp/zookeeper-{{ zkrest_version }}/zookeeper-{{ zkrest_version }}.jar"
+  delegate_to: localhost
+  when: path is not exists
+  run_once: True
+
+- name: install zkrest
+  copy:
+    src: roles/{{ role_name }}/files/tmp/zookeeper-{{ zkrest_version }}/zookeeper-contrib/zookeeper-contrib-rest/{{ file_path }}
+    dest: /opt/zkrest/current/{{ file_path }}
+    owner: root
+    group: svc
+    mode: preserve
+    directory_mode: u=rwx,g=rx,o=
+  loop:
+  - zookeeper-{{ zkrest_version }}-rest.jar
+  - lib/
+  - NOTICE.txt
+  - README.txt
+  loop_control:
+    loop_var: file_path
+
+- name: link necessary zk jar files to bootstrap zkrest
+  file:
+    src: /opt/zookeeper/current/lib/{{ file_path }}
+    dest: /opt/zkrest/current/{{ file_path }}
+    state: link
+  loop:
+  - zookeeper-{{ zk_version }}.jar
+  - zookeeper-jute-{{ zk_version }}.jar
+  loop_control:
+    loop_var: file_path
+
+- name: install services
+  copy:
+    src: roles/{{ role_name }}/files/lib/systemd/system/
+    dest: /lib/systemd/system/
+
+- name: copy files
+  copy:
+    src: files/opt/
+    dest: /opt/
+    owner: root
+    group: svc
+    mode: preserve
+    directory_mode: u=rwx,g=rx,o=
+
+- name: allow zk change conf files at runtime
+  file:
+    path: /opt/app/conf/zookeeper/{{ path }}
+    owner: zookeeper
+    group: svc
+  loop:
+  - zoo.cfg
+  - zoo.dynamic.cfg
+  loop_control:
+    loop_var: path
+
+- name: install confd files
+  include_role:
+    name: confd-files-1.0.1
+
+- name: add commands to PATH
+  copy:
+    dest: /etc/profile.d/zookeeper-path.sh
+    content: 'PATH=$PATH:/opt/zookeeper/current/bin'
+
+- name: mask services
+  systemd:
+    name: "{{ service_name }}"
+    enabled: no
+    masked: yes
+    state: stopped
+  loop:
+  - zookeeper-server
+  - zookeeper-rest
+  loop_control:
+    loop_var: service_name

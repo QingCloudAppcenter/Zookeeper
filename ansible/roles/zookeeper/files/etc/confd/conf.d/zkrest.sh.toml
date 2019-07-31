@@ -1,0 +1,8 @@
+[template]
+src = "zkrest.sh.tmpl"
+dest = "/opt/app/bin/tmpl/zkrest.sh"
+mode = "0700"
+keys = [
+  "/",
+]
+reload_cmd = "/opt/app/bin/tmpl/zkrest.sh; appctl reload zookeeper-rest"

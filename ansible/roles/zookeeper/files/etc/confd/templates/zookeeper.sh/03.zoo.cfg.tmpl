@@ -1,0 +1,16 @@
+flush /opt/app/conf/zookeeper/zoo.cfg << ZOO_CONF_EOF
+tickTime={{ getv "/env/tickTime" "2000" }}
+initLimit={{ getv "/env/initLimit" "10" }}
+syncLimit={{ getv "/env/syncLimit" "5" }}
+dataDir=/data/zookeeper
+clientPort={{ getv "/cluster/endpoints/client/port" "2181" }}
+maxClientCnxns={{ getv "/env/maxClientCnxns" "1000" }}
+autopurge.snapRetainCount={{ getv "/env/autopurge.snapRetainCount" "3" }}
+autopurge.purgeInterval={{ getv "/env/autopurge.purgeInterval" "1" }}
+4lw.commands.whitelist=mntr,{{ getv "/env/4lw.commands.whitelist" "" }}
+admin.enableServer={{ getv "/env/admin.server.enabled" "true" }}
+tcpKeepAlive={{ getv "/env/tcpKeepAlive" "false" }}
+standaloneEnabled=false
+reconfigEnabled=false
+dynamicConfigFile=/opt/app/conf/zookeeper/zoo.dynamic.cfg
+ZOO_CONF_EOF

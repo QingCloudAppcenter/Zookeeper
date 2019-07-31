@@ -1,0 +1,22 @@
+firstJoiningNode="${joiningNodes%% *}"
+flush /opt/app/conf/zookeeper/zoo.dynamic.cfg << ZOO_DYNAMIC_CONF_EOF
+{{- range $allHosts }}
+{{- if not ($joiningHosts | filter .) }}
+server.{{ if $usingGsid }}{{ getv (printf "/hosts/%s/gsid" .) }}{{ else }}{{ getv (printf "/hosts/%s/sid" .) }}{{ end }}={{ getv (printf "/hosts/%s/ip" .) }}:2888:3888
+{{- end }}
+{{- end }}
+
+{{- $mySid := getv "/host/sid" }}
+{{- range $joiningHosts }}
+{{- $sid := getv (printf "/adding-hosts/%s/sid" .) }}
+{{- if le $sid $mySid }}
+server.{{ if $usingGsid }}{{ getv (printf "/adding-hosts/%s/gsid" .) }}{{ else }}{{ $sid }}{{ end }}={{ getv (printf "/adding-hosts/%s/ip" .) }}:2888:3888
+{{- end }}
+{{- end }}
+
+{{- if $joiningHosts }}
+{{- if and (not ($joiningHosts | filter (getv "/host/instance_id"))) (eq (sub (len $allHosts) (len $joiningHosts)) 1) }}
+server.${firstJoiningNode%%/*}=${firstJoiningNode##*/}:2888:3888
+{{- end }}
+{{- end }}
+ZOO_DYNAMIC_CONF_EOF
