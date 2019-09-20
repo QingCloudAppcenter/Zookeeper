@@ -7,11 +7,13 @@ apply plugin: 'application'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-mainClassName = "com.yunify.qingcloud.appcenter.examples.zookeeper.ClientExample"
+mainClassName = "com.yunify.appcenter.examples.zookeeper.ClientExample"
+
+def curatorVersion = '4.2.0'
 
 dependencies {
-  compile (
-    'org.apache.curator:curator-client:4.0.1',
-    'org.apache.curator:curator-framework:4.0.1',
-  )
+  compile("org.apache.curator:curator-recipes:$curatorVersion") {
+      exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+  }
+  compile("org.apache.zookeeper:zookeeper:3.4.13")
 }
