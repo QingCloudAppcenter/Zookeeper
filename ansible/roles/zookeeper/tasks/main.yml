@@ -1,0 +1,100 @@
+---
+- name: set vars
+  set_fact:
+    zk_version: 3.5.7
+    zkrest_version: 3.4.14
+
+- name: add the service group
+  group:
+    name: svc
+    state: present
+
+- name: add the service user
+  user:
+    name: zookeeper
+    groups: svc
+    shell: /sbin/nologin
+    create_home: no
+    append: yes
+    comment: "Service User"
+    state: present
+
+- name: install zk
+  include_role:
+    name: install-1.0.0
+  vars:
+    opts:
+      pkg_name: zookeeper
+      pkg_version: "{{ zk_version }}"
+      pkg_url: https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}-bin.tar.gz
+      pkg_type: .tgz
+      extracts: true
+      bin_path: bin
+      creates: bin/zkServer.sh
+
+- name: install zkrest
+  include_role:
+    name: install-1.0.0
+  vars:
+    opts:
+      pkg_name: zkrest
+      pkg_version: "{{ zkrest_version }}"
+      pkg_url: https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-{{ zkrest_version }}/zookeeper-{{ zkrest_version }}.tar.gz
+      pkg_type: .tgz
+      extracts: true
+      extra_opts:
+      - --strip-components=3
+      - zookeeper-{{ zkrest_version }}/zookeeper-contrib/zookeeper-contrib-rest
+      creates: zookeeper-{{ zkrest_version }}-rest.jar
+
+- name: link necessary zk jar files to bootstrap zkrest
+  file:
+    src: /opt/zookeeper/current/lib/{{ file_path }}
+    dest: /opt/zkrest/current/{{ file_path }}
+    state: link
+  loop:
+  - zookeeper-{{ zk_version }}.jar
+  - zookeeper-jute-{{ zk_version }}.jar
+  loop_control:
+    loop_var: file_path
+
+- name: install services
+  copy:
+    src: roles/{{ role_name }}/files/lib/systemd/system/
+    dest: /lib/systemd/system/
+
+- name: mask services
+  systemd:
+    name: "{{ service_name }}"
+    enabled: no
+    masked: yes
+    state: stopped
+  loop:
+  - zookeeper-server
+  - zookeeper-rest
+  loop_control:
+    loop_var: service_name
+
+- name: copy files
+  copy:
+    src: files/opt/
+    dest: /opt/
+    owner: root
+    group: svc
+    mode: preserve
+    directory_mode: u=rwx,g=rx,o=
+
+- name: allow zk change conf files at runtime
+  file:
+    path: /opt/app/conf/zookeeper/{{ path }}
+    owner: zookeeper
+    group: svc
+  loop:
+  - zoo.cfg
+  - zoo.dynamic.cfg
+  loop_control:
+    loop_var: path
+
+- name: install confd files
+  include_role:
+    name: confd-files-1.0.1
