@@ -1,7 +1,7 @@
 ---
 - name: set vars
   set_fact:
-    zk_version: 3.5.6
+    zk_version: 3.5.7
     zkrest_version: 3.4.14
 
 - name: add the service group
@@ -19,81 +19,33 @@
     comment: "Service User"
     state: present
 
-- name: create directories
-  file:
-    path: /opt/{{ service }}
-    state: directory
-  loop:
-  - zookeeper/{{ zk_version }}
-  - zkrest/{{ zkrest_version }}
-  loop_control:
-    loop_var: service
-
-- name: link zookeeper binary dir
-  file:
-    src: "{{ zk_version }}"
-    dest: /opt/zookeeper/current
-    state: link
-
-- name: link zkrest binary dir
-  file:
-    src: "{{ zkrest_version }}"
-    dest: /opt/zkrest/current
-    state: link
-
-- name: prepare download dir
-  file:
-    path: "{{ role_path }}/files/tmp"
-    state: directory
-  delegate_to: localhost
-
-- name: download binary
+- name: install zk
+  include_role:
+    name: install-1.0.0
   vars:
-    path: "{{ role_path }}/files/tmp/zookeeper-{{ zk_version }}.tgz"
-  get_url:
-    url: https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}-bin.tar.gz
-    dest: "{{ path }}"
-  delegate_to: localhost
-  when: path is not exists
-  run_once: True
-
-- name: install zk binaries
-  unarchive:
-    src: roles/{{ role_name }}/files/tmp/zookeeper-{{ zk_version }}.tgz
-    dest: /opt/zookeeper/current/
-    extra_opts:
-    - --strip-components=1
-    owner: root
-    group: root
-    creates: /opt/zookeeper/current/bin/zkServer.sh
-
-- name: extract zkrest
-  vars:
-    path: "{{ role_path }}/files/tmp"
-  unarchive:
-    src: https://mirrors.tuna.tsinghua.edu.cn/apache/zookeeper/zookeeper-{{ zkrest_version }}/zookeeper-{{ zkrest_version }}.tar.gz
-    dest: "{{ playbook_dir }}/roles/{{ role_name }}/files/tmp"
-    remote_src: yes
-    creates: "{{ playbook_dir }}/roles/{{ role_name }}/files/tmp/zookeeper-{{ zkrest_version }}/zookeeper-{{ zkrest_version }}.jar"
-  delegate_to: localhost
-  when: path is not exists
-  run_once: True
+    opts:
+      pkg_name: zookeeper
+      pkg_version: "{{ zk_version }}"
+      pkg_url: https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}-bin.tar.gz
+      pkg_type: .tgz
+      extracts: true
+      bin_path: bin
+      creates: bin/zkServer.sh
 
 - name: install zkrest
-  copy:
-    src: roles/{{ role_name }}/files/tmp/zookeeper-{{ zkrest_version }}/zookeeper-contrib/zookeeper-contrib-rest/{{ file_path }}
-    dest: /opt/zkrest/current/{{ file_path }}
-    owner: root
-    group: svc
-    mode: preserve
-    directory_mode: u=rwx,g=rx,o=
-  loop:
-  - zookeeper-{{ zkrest_version }}-rest.jar
-  - lib/
-  - NOTICE.txt
-  - README.txt
-  loop_control:
-    loop_var: file_path
+  include_role:
+    name: install-1.0.0
+  vars:
+    opts:
+      pkg_name: zkrest
+      pkg_version: "{{ zkrest_version }}"
+      pkg_url: https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-{{ zkrest_version }}/zookeeper-{{ zkrest_version }}.tar.gz
+      pkg_type: .tgz
+      extracts: true
+      extra_opts:
+      - --strip-components=3
+      - zookeeper-{{ zkrest_version }}/zookeeper-contrib/zookeeper-contrib-rest
+      creates: zookeeper-{{ zkrest_version }}-rest.jar
 
 - name: link necessary zk jar files to bootstrap zkrest
   file:
@@ -110,6 +62,18 @@
   copy:
     src: roles/{{ role_name }}/files/lib/systemd/system/
     dest: /lib/systemd/system/
+
+- name: mask services
+  systemd:
+    name: "{{ service_name }}"
+    enabled: no
+    masked: yes
+    state: stopped
+  loop:
+  - zookeeper-server
+  - zookeeper-rest
+  loop_control:
+    loop_var: service_name
 
 - name: copy files
   copy:
@@ -134,20 +98,3 @@
 - name: install confd files
   include_role:
     name: confd-files-1.0.1
-
-- name: add commands to PATH
-  copy:
-    dest: /etc/profile.d/zookeeper-path.sh
-    content: 'PATH=$PATH:/opt/zookeeper/current/bin'
-
-- name: mask services
-  systemd:
-    name: "{{ service_name }}"
-    enabled: no
-    masked: yes
-    state: stopped
-  loop:
-  - zookeeper-server
-  - zookeeper-rest
-  loop_control:
-    loop_var: service_name

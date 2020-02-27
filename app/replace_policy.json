@@ -1,83 +1,29 @@
 {
-  "ap2a": {
+  "pek3a": {
     "instance_class": [{
-      "src": "0",
-      "dst": 101
+      "src": "101",
+      "dst": 0
     }, {
-      "src": "1",
-      "dst": 201
-    }]
-  },
-  "ap3a": {
-    "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
-      "dst": 202
+      "src": "202",
+      "dst": 1
     }]
   },
   "gd2a": {
     "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
+      "src": "202",
       "dst": 201
     }]
   },
   "gd2b": {
     "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
+      "src": "202",
       "dst": 201
     }]
   },
-  "pek3b": {
+  "ap2a": {
     "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
-      "dst": 202
-    }]
-  },
-  "pek3c": {
-    "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
-      "dst": 202
-    }]
-  },
-  "pek3d": {
-    "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
-      "dst": 202
-    }]
-  },
-  "sh1a": {
-    "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
-      "dst": 202
-    }]
-  },
-  "sh1b": {
-    "instance_class": [{
-      "src": "0",
-      "dst": 101
-    }, {
-      "src": "1",
-      "dst": 202
+      "src": "202",
+      "dst": 201
     }]
   }
 }
