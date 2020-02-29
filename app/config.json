@@ -51,8 +51,8 @@
         "label": "Instance Class",
         "description": "The instance type for the cluster to run, such as high performance, high performance plus",
         "type": "integer",
-        "default": 0,
-        "range": [0, 1],
+        "default": 101,
+        "range": [101, 202, 301],
         "required": "yes"
       }, {
         "key": "count",
@@ -60,7 +60,7 @@
         "description": "Number of nodes",
         "type": "integer",
         "default": 3,
-        "range": [ 1, 3, 5, 7, 9 ],
+        "range": [1, 3, 5, 7, 9],
         "required": "yes"
       }, {
         "key": "volume_size",
@@ -82,16 +82,16 @@
       "type": "boolean",
       "changeable": true,
       "default": false,
-      "required": "yes"
+      "required": "no"
     }, {
       "key": "admin_username",
       "label": "Admin Username",
-      "description": "The username of the admin user (ignore if disabled), can contain lowercase letters and digits, and must start with lowercase letters, with 3-12 characters in total",
+      "description": "The username of the admin user (ignore if disabled), can contain lowercase letters and digits, and must start with lowercase letters, with 4-12 characters in total",
       "type": "string",
       "changeable": true,
       "default": "super",
       "pattern": "[a-z][a-z0-9]{3,12}",
-      "required": "yes"
+      "required": "no"
     }, {
       "key": "admin_password",
       "label": "Admin Password",
@@ -100,7 +100,7 @@
       "changeable": true,
       "default": "Super12345",
       "pattern": "[A-Za-z0-9!@#$%^&*()]{4,32}",
-      "required": "yes"
+      "required": "no"
     }, {
       "key": "tickTime",
       "label": "tickTime",
@@ -160,6 +160,74 @@
       "default": 1,
       "min": 0,
       "max": 720,
+      "required": "no"
+    }, {
+      "key": "4lw.commands.whitelist",
+      "label": "4lw.commands.whitelist",
+      "description": "A list of Four Letter Words commands that user wants to use",
+      "type": "string",
+      "changeable": true,
+      "range": [
+        "conf",
+        "cons",
+        "crst",
+        "dump",
+        "envi",
+        "gtmk",
+        "isro",
+        "ruok",
+        "srst",
+        "srvr",
+        "stat",
+        "stmk",
+        "wchc",
+        "wchp",
+        "wchs"
+      ],
+      "multichoice": true,
+      "default": "conf,cons,crst,dump,envi,gtmk,isro,ruok,srst,srvr,stat,stmk,wchc,wchp,wchs",
+      "required": "no"
+    }, {
+      "key": "tcpKeepAlive",
+      "label": "tcpKeepAlive",
+      "description": "Setting this to true sets the TCP keepAlive flag on the sockets used by quorum members to perform elections",
+      "type": "boolean",
+      "changeable": true,
+      "default": false,
+      "required": "no"
+    }, {
+      "key": "web.console.enabled",
+      "label": "Enable Web Console",
+      "description": "ZooKeeper logging files can be viewed from the web console",
+      "type": "boolean",
+      "changeable": true,
+      "default": true,
+      "required": "no"
+    }, {
+      "key": "web.console.username",
+      "label": "Web Console Username",
+      "description": "The username of the admin web console, can contain uppercase & lowercase letters, digits with 4-12 characters in total",
+      "type": "string",
+      "changeable": true,
+      "default": "admin",
+      "pattern": "^[a-z][a-z0-9_-]{3,32}",
+      "required": "no"
+    }, {
+      "key": "web.console.password",
+      "label": "Web Console Password",
+      "description": "The password of the admin web console, can contain uppercase & lowercase letters, digits, and the following 10 special characters !@#$%^&*() with 4-32 characters in total",
+      "type": "password",
+      "changeable": true,
+      "default": "admin",
+      "pattern": "[A-Za-z0-9!@#$%^&*()]{4,32}",
+      "required": "no"
+    }, {
+      "key": "zkrest.enabled",
+      "label": "Enable REST Gateway",
+      "description": "Whether enable REST gateway",
+      "type": "boolean",
+      "changeable": true,
+      "default": true,
       "required": "no"
     }]
   }]

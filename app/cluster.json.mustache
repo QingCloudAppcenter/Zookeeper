@@ -3,11 +3,19 @@
   "description": {{cluster.description}},
   "vxnet": {{cluster.vxnet}},
   "multi_zone_policy": "round_robin",
+  "backup_policy": "device",
+  "incremental_backup_supported": true,
+  "upgrade_policy": [
+    "appv-89xrqcih",
+    "appv-9b7na511",
+    "appv-70gegwmp"
+  ],
+  "upgrading_policy": "sequential",
   "nodes": [{
     "container": {
       "type": "kvm",
       "zone": "pek3a",
-      "image": "img-31fq61hi"
+      "image": "img-bdt5kork"
     },
     "count": {{cluster.zk_node.count}},
     "cpu": {{cluster.zk_node.cpu}},
@@ -18,17 +26,28 @@
     },
     "server_id_upper_bound": 255,
     "services": {
-      "init": {
-        "cmd": "bash -e /opt/zkapp/bin/init.sh"
-      },
       "start": {
-        "cmd": "bash -e /opt/zkapp/bin/app.sh start"
+        "cmd": "appctl start",
+        "timeout": 8000
       },
       "stop": {
-        "cmd": "bash -e /opt/zkapp/bin/app.sh stop"
+        "cmd": "appctl stop"
       },
-      "upgrade": {
-        "cmd": "bash -e /opt/zkapp/bin/init.sh"
+      "restart": {
+        "cmd": "appctl restart"
+      },
+      "destroy": {
+        "allow_force": false,
+        "cmd": "appctl destroy"
+      },
+      "backup": {
+        "selector": "appctl findNodeIdOfLeader",
+        "nodes_to_execute_on": 1,
+        "timeout": 3600,
+        "cmd": "appctl backup"
+      },
+      "restore": {
+        "cmd": "appctl restore"
       }
     },
     "vertical_scaling_policy": "sequential"
@@ -50,12 +69,12 @@
     "action_timeout_sec": 30,
     "healthy_threshold": 2,
     "unhealthy_threshold": 2,
-    "check_cmd": "bash -e /opt/zkapp/bin/healthcheck.sh",
-    "action_cmd": "bash -e /opt/zkapp/bin/app.sh restart"
+    "check_cmd": "appctl check",
+    "action_cmd": "appctl revive"
   },
   "monitor": {
     "enable": true,
-    "cmd": "bash -e /opt/zkapp/bin/metrics.sh",
+    "cmd": "appctl measure",
     "items": {
       "mode": {
         "unit": "",
@@ -106,7 +125,7 @@
         "scale_factor_when_display": 1
       },
       "znode": {
-        "unit": "znode_count",
+        "unit": "count",
         "value_type": "int",
         "statistics_type": "latest",
         "scale_factor_when_display": 1
@@ -118,19 +137,24 @@
       "connections": ["active", "outstanding"]
     },
     "display": ["mode", "latency", "throughput", "connections", "znode"],
-    "alarm": ["avg"]
+    "alarm": ["mode", "avg", "active"]
   },
   "advanced_actions": ["change_vxnet", "scale_horizontal"],
   "env": {
     "zkAdminEnabled": {{env.admin_enabled}},
     "zkAdminUsername": {{env.admin_username}},
     "zkAdminPassword": {{env.admin_password}},
+    "web.console.enabled": {{env.web.console.enabled}},
+    "web.console.username": {{env.web.console.username}},
+    "web.console.password": {{env.web.console.password}},
+    "zkrest.enabled": {{env.zkrest.enabled}},
     "tickTime": {{env.tickTime}},
     "initLimit": {{env.initLimit}},
     "syncLimit": {{env.syncLimit}},
     "maxClientCnxns": {{env.maxClientCnxns}},
+    "4lw.commands.whitelist": {{env.4lw.commands.whitelist}},
+    "tcpKeepAlive": {{env.tcpKeepAlive}},
     "autopurge.snapRetainCount": {{env.autopurge_snapRetainCount}},
-    "autopurge.purgeInterval": {{env.autopurge_purgeInterval}},
-    "zkVersion": "3.4.13"
+    "autopurge.purgeInterval": {{env.autopurge_purgeInterval}}
   }
 }

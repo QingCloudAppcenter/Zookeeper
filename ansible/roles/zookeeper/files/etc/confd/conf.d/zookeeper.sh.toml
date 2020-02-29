@@ -1,0 +1,8 @@
+[template]
+src = "zookeeper.sh.tmpl"
+dest = "/opt/app/bin/tmpl/zookeeper.sh"
+mode = "0700"
+keys = [
+  "/",
+]
+reload_cmd = "/opt/app/bin/tmpl/zookeeper.sh; appctl reload zookeeper"

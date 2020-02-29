@@ -1,7 +1,0 @@
-[template]
-src = "zoo.cfg.tmpl"
-dest = "/opt/zkapp/conf/server/zoo.cfg"
-keys = [
-  "/",
-]
-reload_cmd = "bash -e /opt/zkapp/bin/app.sh restart"

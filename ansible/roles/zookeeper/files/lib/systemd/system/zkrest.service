@@ -1,0 +1,15 @@
+[Unit]
+Description=ZooKeeper REST Gateway
+Documentation=https://zookeeper.apache.org
+Requires=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=zookeeper
+Group=zookeeper
+ExecStart=/opt/zkrest/current/bin/zkRest.sh
+WorkingDirectory=/data/zkrest
+
+[Install]
+WantedBy=default.target
