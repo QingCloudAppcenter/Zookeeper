@@ -12,6 +12,13 @@ initNode() {
   chown -R zookeeper.svc /data/{zookeeper,zkrest}
   local htmlFile=/data/index.html; [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
   _initNode
+
+  if [ "$IS_UPGRADING" == "true" ]; then
+    # Fix "java.io.IOException: No snapshot found, but there are log entries. Something is broken!".
+    # See https://issues.apache.org/jira/browse/ZOOKEEPER-3056 for details.
+    local snapFile=/data/zookeeper/version-2/snapshot.0
+    [ -e $snapFile ] || sudo -u zookeeper cp /opt/app/conf/zookeeper/snapshot.0 $snapFile
+  fi
 }
 
 start() {
@@ -34,13 +41,13 @@ reconfigure() {
 }
 
 checkFullyStarted() {
-  local ip=${1:-$MY_IP} mode=${2:-"(leader|follower|standalone)"}
+  local ip=${1:-$MY_IP} mode=${2:-"(leader|follower)"}
   retrieveMode $ip | egrep -q "^$mode$" || return $EC_START_ERR
 }
 
 retrieveMode() {
   local ip=${1:-$MY_IP}
-  echo mntr | nc -q2 -w2 $ip 2181 | egrep "^zk_server_state\s(leader|follower|standalone)$" | cut -f2 || {
+  echo mntr | nc -q2 -w2 $ip 2181 | egrep "^zk_server_state\s(leader|follower)$" | cut -f2 || {
     log "ERROR Failed to retrieve mode of $ip."
     return $EC_RETRIEVE_MODE_ERR
   }
@@ -93,7 +100,7 @@ restore() {
 
 checkSvc() {
   if [ "$1" == "zookeeper" ]; then
-    retrieveMode | egrep -q '^(leader|follower|standalone)$' || return $EC_UNKNOWN_MODE
+    retrieveMode | egrep -q '^(leader|follower)$' || return $EC_UNKNOWN_MODE
   fi
   _checkSvc $@
 }

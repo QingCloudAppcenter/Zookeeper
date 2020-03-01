@@ -14,8 +14,8 @@
   "nodes": [{
     "container": {
       "type": "kvm",
-      "zone": "pek3a",
-      "image": "img-bdt5kork"
+      "zone": "pek3",
+      "image": "img-nd557r5e"
     },
     "count": {{cluster.zk_node.count}},
     "cpu": {{cluster.zk_node.cpu}},
@@ -80,7 +80,7 @@
         "unit": "",
         "value_type": "str",
         "statistics_type": "latest",
-        "enums": ["L", "F", "S"]
+        "enums": ["L", "F"]
       },
       "min": {
         "unit": "ms",
@@ -144,6 +144,7 @@
     "zkAdminEnabled": {{env.admin_enabled}},
     "zkAdminUsername": {{env.admin_username}},
     "zkAdminPassword": {{env.admin_password}},
+    "admin.server.enabled": {{env.admin.server.enabled}},
     "web.console.enabled": {{env.web.console.enabled}},
     "web.console.username": {{env.web.console.username}},
     "web.console.password": {{env.web.console.password}},

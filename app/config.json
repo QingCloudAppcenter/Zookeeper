@@ -171,6 +171,7 @@
         "conf",
         "cons",
         "crst",
+        "dirs",
         "dump",
         "envi",
         "gtmk",
@@ -185,7 +186,7 @@
         "wchs"
       ],
       "multichoice": true,
-      "default": "conf,cons,crst,dump,envi,gtmk,isro,ruok,srst,srvr,stat,stmk,wchc,wchp,wchs",
+      "default": "srvr",
       "required": "no"
     }, {
       "key": "tcpKeepAlive",
@@ -194,6 +195,14 @@
       "type": "boolean",
       "changeable": true,
       "default": false,
+      "required": "no"
+    }, {
+      "key": "admin.server.enabled",
+      "label": "Enable AdminServer",
+      "description": "The AdminServer is an embedded Jetty server that provides an HTTP interface to the four letter word commands",
+      "type": "boolean",
+      "changeable": true,
+      "default": true,
       "required": "no"
     }, {
       "key": "web.console.enabled",
