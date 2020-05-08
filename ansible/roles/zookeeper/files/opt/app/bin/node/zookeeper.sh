@@ -35,7 +35,7 @@ reconfigure() {
 
 checkFullyStarted() {
   local ip=${1:-$MY_IP} mode=${2:-"(leader|follower|standalone)"}
-  retrieveMode $ip | egrep -q "^$mode$" || return $EC_START_ERR
+  retrieveMode $ip | egrep -o "^$mode$" || return $EC_START_ERR
 }
 
 retrieveMode() {
@@ -92,8 +92,9 @@ restore() {
 }
 
 checkSvc() {
-  if [ "$1" == "zookeeper" ]; then
-    retrieveMode | egrep -q '^(leader|follower|standalone)$' || return $EC_UNKNOWN_MODE
+  local svcName=${1%%/*}
+  if [ "$svcName" == "zookeeper" ]; then
+    retrieveMode | egrep -o '^(leader|follower|standalone)$' || return $EC_UNKNOWN_MODE
   fi
   _checkSvc $@
 }

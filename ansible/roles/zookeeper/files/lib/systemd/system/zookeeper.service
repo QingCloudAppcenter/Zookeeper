@@ -11,6 +11,7 @@ Group=zookeeper
 EnvironmentFile=/opt/app/conf/zookeeper/.env
 ExecStart=/opt/zookeeper/current/bin/zkServer.sh start-foreground
 ExecStop=/opt/zookeeper/current/bin/zkServer.sh stop
+Restart=always
 WorkingDirectory=/data/zookeeper
 
 LimitNOFILE=1048576

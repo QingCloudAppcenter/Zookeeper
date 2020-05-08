@@ -1,0 +1,11 @@
+hostsFile=/etc/hosts
+sed "/^# >> ZK nodes./,/^# << ZK nodes./d" $hostsFile > $hostsFile.swap
+
+flush >> $hostsFile.swap << HOSTS_FILE
+# >> ZK nodes. WARNING: this is managed by script and please don't touch manually.
+{{- range lsdir "/hosts" }}
+{{ getv (printf "/hosts/%s/ip" .) }}	{{ getv "/cluster/cluster_id" }}-{{ getv (printf "/hosts/%s/sid" .) }}
+{{- end }}
+# << ZK nodes. WARNING: this is managed by script and please don't touch manually.
+HOSTS_FILE
+mv $hostsFile.swap $hostsFile
