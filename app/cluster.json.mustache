@@ -1,0 +1,160 @@
+{
+  "name": {{cluster.name}},
+  "description": {{cluster.description}},
+  "vxnet": {{cluster.vxnet}},
+  "multi_zone_policy": "round_robin",
+  "backup_policy": "device",
+  "incremental_backup_supported": true,
+  "upgrade_policy": [
+    "appv-89xrqcih",
+    "appv-9b7na511",
+    "appv-70gegwmp"
+  ],
+  "upgrading_policy": "sequential",
+  "nodes": [{
+    "container": {
+      "type": "kvm",
+      "zone": "pek3",
+      "image": "img-zmheufay"
+    },
+    "count": {{cluster.zk_node.count}},
+    "cpu": {{cluster.zk_node.cpu}},
+    "memory": {{cluster.zk_node.memory}},
+    "instance_class": {{cluster.zk_node.instance_class}},
+    "volume": {
+      "size": {{cluster.zk_node.volume_size}}
+    },
+    "server_id_upper_bound": 255,
+    "services": {
+      "start": {
+        "cmd": "appctl start",
+        "timeout": 8000
+      },
+      "stop": {
+        "cmd": "appctl stop"
+      },
+      "restart": {
+        "cmd": "appctl restart"
+      },
+      "destroy": {
+        "allow_force": false,
+        "cmd": "appctl destroy"
+      },
+      "backup": {
+        "selector": "appctl findNodeIdOfLeader",
+        "nodes_to_execute_on": 1,
+        "timeout": 3600,
+        "cmd": "appctl backup"
+      },
+      "restore": {
+        "cmd": "appctl restore"
+      }
+    },
+    "vertical_scaling_policy": "sequential"
+  }],
+  "endpoints": {
+    "client": {
+      "port": 2181,
+      "protocol": "tcp"
+    },
+    "rest": {
+      "port": 9998,
+      "protocol": "tcp"
+    }
+  },
+  "health_check": {
+    "enable": true,
+    "interval_sec": 60,
+    "timeout_sec": 10,
+    "action_timeout_sec": 30,
+    "healthy_threshold": 2,
+    "unhealthy_threshold": 2,
+    "check_cmd": "appctl check",
+    "action_cmd": "appctl revive"
+  },
+  "monitor": {
+    "enable": true,
+    "cmd": "appctl measure",
+    "items": {
+      "mode": {
+        "unit": "",
+        "value_type": "str",
+        "statistics_type": "latest",
+        "enums": ["L", "F", "S"]
+      },
+      "min": {
+        "unit": "ms",
+        "value_type": "int",
+        "statistics_type": "min",
+        "scale_factor_when_display": 1
+      },
+      "avg": {
+        "unit": "ms",
+        "value_type": "int",
+        "statistics_type": "avg",
+        "scale_factor_when_display": 1
+      },
+      "max": {
+        "unit": "ms",
+        "value_type": "int",
+        "statistics_type": "max",
+        "scale_factor_when_display": 1
+      },
+      "received": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "sent": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "active": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "outstanding": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      },
+      "znode": {
+        "unit": "count",
+        "value_type": "int",
+        "statistics_type": "latest",
+        "scale_factor_when_display": 1
+      }
+    },
+    "groups": {
+      "latency": ["min", "avg", "max"],
+      "throughput": ["received", "sent"],
+      "connections": ["active", "outstanding"]
+    },
+    "display": ["mode", "latency", "throughput", "connections", "znode"],
+    "alarm": ["mode", "avg", "active"]
+  },
+  "advanced_actions": ["change_vxnet", "scale_horizontal"],
+  "env": {
+    "zkAdminEnabled": {{env.admin_enabled}},
+    "zkAdminUsername": {{env.admin_username}},
+    "zkAdminPassword": {{env.admin_password}},
+    "web.console.enabled": {{env.web.console.enabled}},
+    "web.console.username": {{env.web.console.username}},
+    "web.console.password": {{env.web.console.password}},
+    "zkrest.enabled": {{env.zkrest.enabled}},
+    "tickTime": {{env.tickTime}},
+    "initLimit": {{env.initLimit}},
+    "syncLimit": {{env.syncLimit}},
+    "maxClientCnxns": {{env.maxClientCnxns}},
+    "4lw.commands.whitelist": {{env.4lw.commands.whitelist}},
+    "tcpKeepAlive": {{env.tcpKeepAlive}},
+    "autopurge.snapRetainCount": {{env.autopurge_snapRetainCount}},
+    "autopurge.purgeInterval": {{env.autopurge_purgeInterval}}
+  }
+}
