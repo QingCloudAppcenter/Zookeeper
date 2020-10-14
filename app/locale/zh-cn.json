@@ -15,7 +15,6 @@
   "Volume Size": "存储容量",
   "The volume size for each node": "每个节点的存储容量",
   "instance class": "实例类型",
-  "The instance type for the cluster to run, such as high performance, high performance plus": "节点实例类型，比如性能型与超高性能型",
   "notice_when_upgrade": "升级期间会发生主从切换，生产环境升级前请先在测试环境测试，确保所有客户端可以正常处理并自动重连，以免造成业务中断！",
   "err_code210": "当前无法获取待删除节点的角色，为避免主节点被删除，请稍候重试，并确保集群状态正常并且选中从节点进行删除（可以通过节点的“服务模式”监控项获取主从信息）",
   "err_code211": "当前选中的待删除节点可能包含主节点，为避免数据丢失，请选中从节点删除（可以通过节点的“服务模式”监控项获取主从信息）或等节点状态稳定后重试",
