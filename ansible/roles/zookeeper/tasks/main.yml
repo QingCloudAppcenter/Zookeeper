@@ -14,6 +14,10 @@
     comment: "Service User"
     state: present
 
+# https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-{{ zk_version }}/zookeeper-{{ zk_version }}.tar.gz
+# https://dlcdn.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3-bin.tar.gz
+# https://dlcdn.apache.org/zookeeper/zookeeper-3.6.3/apache-zookeeper-3.6.3.tar.gz
+# download source
 - name: install zk
   include_role:
     name: install-1.0.0
@@ -21,11 +25,164 @@
     opts:
       pkg_name: zookeeper
       pkg_version: "{{ zk_version }}"
-      pkg_url: https://mirror.bit.edu.cn/apache/zookeeper/zookeeper-{{ zk_version }}/zookeeper-{{ zk_version }}.tar.gz
+      pkg_url: https://dlcdn.apache.org/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}.tar.gz
       pkg_type: .tgz
       extracts: true
       bin_path: bin
       creates: bin/zkServer.sh
+
+- name: Install maven
+  ansible.builtin.apt:
+    name: maven
+
+- name: Install ant
+  ansible.builtin.apt:
+    name: ant
+
+#- name: export JAVA_HOME
+#  ansible.builtin.shell:
+#    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> /etc/bash.bashrc
+#    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> /root/.bashrc
+
+- name: show JAVA_HOME
+  ansible.builtin.shell: echo $JAVA_HOME
+
+- name: compile zk
+  ansible.builtin.shell: export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64; mvn clean package -DskipTests
+  args:
+    chdir: /opt/zookeeper/current
+
+- name: compile rest
+  ansible.builtin.shell: export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64; mvn clean package -DskipTests
+  args:
+    chdir: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest
+
+- name: build rest dep libs
+  ansible.builtin.shell: export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64; ant
+  args:
+    chdir: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest
+
+#- name: check docker-ce status
+#  apt:
+#    name: docker-ce
+#    state: present
+#  register: returnmsg
+#  ignore_errors: true
+#  delegate_to: localhost
+#
+#- name: install docker-ce
+#  shell: "curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun"
+#  when: returnmsg.rc|default('')!=0
+#  delegate_to: localhost
+#
+#- name: pip install docker
+#  pip:
+#    name: docker==5.0.3
+#    executable: pip3
+#    state: present
+#
+#- name: start docker
+#  systemd:
+#    name: docker
+#    state: started
+#    enabled: no
+#  delegate_to: localhost
+#
+#- name: compile zk by container
+#  docker_container:
+#    name: console-jar-compiler
+#    image: "maven:3.6.3-jdk-8"
+#    command: mvn package -Dmaven.test.skip=true
+#    command_handling: correct
+#    detach: no
+#    debug: true
+#    auto_remove: yes
+#    state: started
+#    recreate: yes
+#    working_dir: /usr/src/zookeeper
+#    volumes:
+#      - "/opt/zookeeper/current:/usr/src/zookeeper"
+#  delegate_to: localhost
+#
+#- name: compile zkrest by container
+#  docker_container:
+#    name: console-jar-compiler
+#    image: "maven:3.6.3-jdk-8"
+#    command: mvn package -Dmaven.test.skip=true
+#    command_handling: correct
+#    detach: no
+#    debug: true
+#    auto_remove: yes
+#    state: started
+#    recreate: yes
+#    working_dir: /usr/src/zookeeper/zookeeper-contrib/zookeeper-contrib-rest
+#    volumes:
+#      - "/opt/zookeeper/current:/usr/src/zookeeper"
+#  delegate_to: localhost
+#
+#- name: build zkrest dep libs by container
+#  docker_container:
+#    name: console-jar-compiler
+#    image: "maven:3.6.3-jdk-8"
+#    command: ant
+#    command_handling: correct
+#    detach: no
+#    debug: true
+#    auto_remove: yes
+#    state: started
+#    recreate: yes
+#    working_dir: /usr/src/zookeeper/zookeeper-contrib/zookeeper-contrib-rest
+#    volumes:
+#      - "/opt/zookeeper/current:/usr/src/zookeeper"
+#  delegate_to: localhost
+
+#- name: wait for jar finish compile
+#  wait_for:
+#    timeout: 7200
+#    path: "{{ local_cache_path }}/rocketmq-externals/rocketmq-console/target/rocketmq-console-ng-{{ console_version }}.jar"
+#    state: present
+#  delegate_to: localhost
+
+#- name: stop docker
+#  systemd:
+#    name: docker
+#    state: stopped
+#    enabled: no
+#  delegate_to: localhost
+
+- name: Copy lib into rest
+  ansible.builtin.copy:
+    src: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/target/lib/
+    dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/lib
+    owner: root
+    group: svc
+    mode: preserve
+    directory_mode: u=rwx,g=rx,o=
+
+- name: Copy rest.jar into rest
+  ansible.builtin.copy:
+    src: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/target/zookeeper-contrib-rest-{{ zk_version }}.jar
+    dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/
+    owner: root
+    group: svc
+    mode: preserve
+
+- name: Copy zk.jar into rest
+  ansible.builtin.copy:
+    src: /opt/zookeeper/current/zookeeper-server/target/zookeeper-{{ zk_version }}.jar
+    dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/
+    owner: root
+    group: svc
+    mode: preserve
+
+- name: chmod
+  ansible.builtin.file:
+    path: /opt/zookeeper/current
+    state: directory
+    owner: root
+    group: svc
+    mode: 777
+    recurse: yes
 
 - name: set up zkrest dir
   file:
@@ -37,16 +194,6 @@
     src: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest
     dest: /opt/zkrest/current
     state: link
-
-- name: link necessary zk jar files to bootstrap zkrest
-  file:
-    src: /opt/zookeeper/current/{{ file_path }}
-    dest: /opt/zkrest/current/{{ file_path }}
-    state: link
-  loop:
-  - zookeeper-{{ zk_version }}.jar
-  loop_control:
-    loop_var: file_path
 
 - name: install services
   copy:
@@ -60,8 +207,8 @@
     masked: yes
     state: stopped
   loop:
-  - zookeeper
-  - zkrest
+    - zookeeper
+    - zkrest
   loop_control:
     loop_var: service_name
 
