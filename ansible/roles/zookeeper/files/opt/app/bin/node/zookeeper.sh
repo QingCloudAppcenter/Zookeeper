@@ -8,7 +8,7 @@ EC_UNKNOWN_MODE=216
 EC_MEASURE_ERR=220
 
 initNode() {
-  mkdir -p /data/zookeeper/{dump,logs} /data/zkrest
+  mkdir -p /data/zookeeper/{dump,logs} /data/zkrest /data/zkrest/logs
   chown -R zookeeper.svc /data/{zookeeper,zkrest}
   local htmlFile=/data/index.html; [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
   _initNode

@@ -30,6 +30,8 @@
       extracts: true
       bin_path: bin
       creates: bin/zkServer.sh
+      target_owner: zookeeper
+      target_group: svc
 
 - name: Install maven
   ansible.builtin.apt:
@@ -44,8 +46,8 @@
 #    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> /etc/bash.bashrc
 #    echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> /root/.bashrc
 
-- name: show JAVA_HOME
-  ansible.builtin.shell: echo $JAVA_HOME
+#- name: show JAVA_HOME
+#  ansible.builtin.shell: echo $JAVA_HOME
 
 - name: compile zk
   ansible.builtin.shell: export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64; mvn clean package -DskipTests
@@ -154,34 +156,34 @@
   ansible.builtin.copy:
     src: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/target/lib/
     dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/lib
-    owner: root
+    owner: zookeeper
     group: svc
-    mode: preserve
+    mode: 777
     directory_mode: u=rwx,g=rx,o=
 
 - name: Copy rest.jar into rest
   ansible.builtin.copy:
     src: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/target/zookeeper-contrib-rest-{{ zk_version }}.jar
     dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/
-    owner: root
+    owner: zookeeper
     group: svc
-    mode: preserve
+    mode: 777
 
 - name: Copy zk.jar into rest
   ansible.builtin.copy:
     src: /opt/zookeeper/current/zookeeper-server/target/zookeeper-{{ zk_version }}.jar
     dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/
-    owner: root
+    owner: zookeeper
     group: svc
-    mode: preserve
+    mode: 777
 
 - name: chmod
   ansible.builtin.file:
-    path: /opt/zookeeper/current
     state: directory
-    owner: root
+    path: /opt/zookeeper/current/
+    owner: zookeeper
     group: svc
-    mode: 777
+    mode: 0755
     recurse: yes
 
 - name: set up zkrest dir
