@@ -177,6 +177,15 @@
     group: svc
     mode: 777
 
+# zookeeper-jute-3.6.3.jar
+- name: Copy jute.jar into rest
+  ansible.builtin.copy:
+    src: /opt/zookeeper/current/zookeeper-server/target/lib/zookeeper-jute-{{ zk_version }}.jar
+    dest: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/
+    owner: zookeeper
+    group: svc
+    mode: 777
+
 - name: chmod
   ansible.builtin.file:
     state: directory
