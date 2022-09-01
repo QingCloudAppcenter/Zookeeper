@@ -152,6 +152,24 @@
 #    enabled: no
 #  delegate_to: localhost
 
+- name: Copy zk libs into current
+  ansible.builtin.copy:
+    src: /opt/zookeeper/current/zookeeper-server/target/lib/
+    dest: /opt/zookeeper/current/lib
+    owner: zookeeper
+    group: svc
+    mode: 777
+    directory_mode: u=rwx,g=rx,o=
+
+- name: Copy zk.jar into current
+  ansible.builtin.copy:
+    src: /opt/zookeeper/current/zookeeper-server/target/zookeeper-{{ zk_version }}.jar
+    dest: /opt/zookeeper/current/
+    owner: zookeeper
+    group: svc
+    mode: 777
+    directory_mode: u=rwx,g=rx,o=
+
 - name: Copy lib into rest
   ansible.builtin.copy:
     src: /opt/zookeeper/current/zookeeper-contrib/zookeeper-contrib-rest/target/lib/
