@@ -18,6 +18,12 @@ start() {
   isNodeInitialized || initNode
   reconfigure
 
+   if [ -d "/data/zookeeper/version-2" ];then
+      mv /data/zookeeper/version-2 /data/zookeeper/version-2.bak
+      mkdir /data/zookeeper/version-2
+      chown -R zookeeper.svc /data/zookeeper/version-2
+    fi
+
   # Make sure newly joined nodes start after previously nodes to avoid data loss
   if [[ "$JOINING_NODES " == *"/$MY_IP "* ]]; then
     local node; for node in $STABLE_NODES; do retry 5 1 0 checkEndpoint tcp:2181 ${node##*/}; done
@@ -79,6 +85,19 @@ findNodeIdOfLeader() {
 
   log "ERROR Failed to find leader node among all nodes ($STABLE_NODES)."
   return $EC_NO_LEADER_FOUND
+}
+
+getNodesOrderOfLeader() {
+  local order
+  local leader="$(findNodeIdOfLeader)"
+  for node in $STABLE_NODES; do
+    follower=${node#*/}
+    follower=${follower%/*}
+    if [ "$follower" != "$leader" ] ; then
+      order=$order$follower","
+    fi
+  done
+  echo $order$leader
 }
 
 backup() {

@@ -8,14 +8,15 @@
   "upgrade_policy": [
     "appv-89xrqcih",
     "appv-9b7na511",
-    "appv-70gegwmp"
+    "appv-70gegwmp",
+    "appv-39rsbbce"
   ],
   "upgrading_policy": "sequential",
   "nodes": [{
     "container": {
       "type": "kvm",
       "zone": "pek3",
-      "image": "img-u7a7fo0c"
+      "image": "img-odnnx232"
     },
     "count": {{cluster.zk_node.count}},
     "cpu": {{cluster.zk_node.cpu}},
@@ -45,6 +46,10 @@
         "nodes_to_execute_on": 1,
         "timeout": 3600,
         "cmd": "appctl backup"
+      },
+      "get_nodes_order": {
+         "event": ["upgrade", "rollback", "scale_vertical"],
+         "cmd": "appctl getNodesOrderOfLeader"
       },
       "restore": {
         "cmd": "appctl restore"
