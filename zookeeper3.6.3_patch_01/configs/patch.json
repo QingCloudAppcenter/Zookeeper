@@ -1,0 +1,23 @@
+{
+  "patch_policy": [],
+  "patch_nodes": [{
+    "container": {
+      "snapshot": "ss-9ti3ixec",
+      "zone": "ap2a"
+    },
+    "patch": [{
+      "mount_role": "",
+      "mount_point": "/patch",
+      "mount_options": "defaults,noatime",
+      "filesystem": "ext4",
+      "cmd": "/patch/patch.sh"
+    }],
+    "rollback": [{
+      "mount_role": "",
+      "mount_point": "/patch",
+      "mount_options": "defaults,noatime",
+      "filesystem": "ext4",
+      "cmd": "/patch/rollback.sh"
+    }]
+  }]
+}

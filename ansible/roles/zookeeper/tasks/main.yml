@@ -25,7 +25,7 @@
     opts:
       pkg_name: zookeeper
       pkg_version: "{{ zk_version }}"
-      pkg_url: https://dlcdn.apache.org/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}.tar.gz
+      pkg_url: https://archive.apache.org/dist/zookeeper/zookeeper-{{ zk_version }}/apache-zookeeper-{{ zk_version }}.tar.gz
       pkg_type: .tgz
       extracts: true
       bin_path: bin

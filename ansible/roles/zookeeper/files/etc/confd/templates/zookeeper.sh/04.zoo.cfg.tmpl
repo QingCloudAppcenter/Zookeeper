@@ -4,6 +4,9 @@ flush /opt/app/conf/zookeeper/zoo.cfg << ZOO_CONF_EOF
 tickTime={{ getv "/env/tickTime" "2000" }}
 initLimit={{ getv "/env/initLimit" "10" }}
 syncLimit={{ getv "/env/syncLimit" "5" }}
+maxSessionTimeout={{ getv "/env/maxSessionTimeout" "40000" }}
+preAllocSize={{ getv "/env/preAllocSize" "100000" }}
+snapCount={{ getv "/env/snapCount" "67108864" }}
 dataDir=/data/zookeeper
 clientPort={{ getv "/cluster/endpoints/client/port" "2181" }}
 maxClientCnxns={{ getv "/env/maxClientCnxns" "1000" }}

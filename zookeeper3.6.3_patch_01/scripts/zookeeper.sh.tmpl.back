@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+myPath="$0"
+
+cleanUp() {
+  local rc=$?
+  [ "$rc" -eq 0 ] || echo "# Failed ($rc)! Please check confd logs." >> $myPath
+  return $rc
+}
+
+trap cleanUp EXIT
+
+rotate() {
+  local path=$1 maxFilesCount=5
+  for i in $(seq 1 $maxFilesCount | tac); do
+    if [ -f "${path}.$i" ]; then mv ${path}.$i ${path}.$(($i+1)); fi
+  done
+  if [ -f "$path" ]; then cp $path ${path}.1; fi
+}
+
+flush() {
+  local targetFile=$1
+  if [ -n "$targetFile" ]; then
+    rotate $targetFile
+    cat > $targetFile -
+  else
+    cat -
+  fi
+}
+
+applyEnvs() {
+  local -r envFile=/opt/app/bin/envs/confd.env
+  if [ -f "$envFile" ]; then . $envFile; fi
+}
+
+applyEnvs
+
+# global var which will be used in other tmpl files
+{{- $usingGsid := split "appv-9b7na511 appv-89xrqcih" " " | filter (getv "/upgrade-audit/from_app_version" "none") }}
+{{- $allNodes := lsdir "/hosts" }}
+{{- $joiningNodes := lsdir "/adding-hosts" }}
+{{- $leavingNodes := lsdir "/deleting-hosts" }}
+
+allNodes="$(sort -V << ALL_NODES_EOF
+{{- range $instanceId := $allNodes }}
+{{- if $joiningNodes | filter $instanceId }}
+joining/
+{{- else if $leavingNodes | filter $instanceId }}
+leaving/
+{{- else }}
+stable/
+{{- end }}
+{{- getv (printf "/hosts/%s/sid" $instanceId) }}/
+{{- getv (printf "/hosts/%s/node_id" $instanceId) }}/
+{{- getv (printf "/hosts/%s/ip" $instanceId) }}
+{{- end }}
+ALL_NODES_EOF
+)"
+joiningNodes="$(echo "$allNodes" | awk -F/ '$1~/^j/ {print $2"/"$3"/"$4}' | xargs)"
+
+flush /opt/app/bin/envs/node-zookeeper.env << ZK_ENV_EOF
+SERVICES="\$SERVICES zookeeper/true/tcp:{{ getv "/cluster/endpoints/client/port" "2181" }}"
+NODE_CTL="zookeeper"
+DATA_MOUNTS=/data
+IS_UPGRADING={{ exists "/upgrade-audit/from_app_version" }}
+MY_IP={{ getv "/host/ip" }}
+MY_ZK_ID={{ if $usingGsid }}{{ getv "/host/gsid" }}{{ else }}{{ getv "/host/sid" }}{{ end }}
+JOINING_NODES="$joiningNodes"
+LEAVING_NODES="$(echo "$allNodes" | awk -F/ '$1~/^l/ {print $2"/"$3"/"$4}' | xargs)"
+STABLE_NODES="$(echo "$allNodes" | awk -F/ '$1~/^s/ {print $2"/"$3"/"$4}' | xargs)"
+ZK_ENV_EOF
+
+hostsFile=/etc/hosts
+sed "/^# >> ZK nodes./,/^# << ZK nodes./d" $hostsFile > $hostsFile.swap
+
+flush >> $hostsFile.swap << HOSTS_FILE
+# >> ZK nodes. WARNING: this is managed by script and please don't touch manually.
+{{- range lsdir "/hosts" }}
+{{ getv (printf "/hosts/%s/ip" .) }}	{{ getv "/cluster/cluster_id" }}-{{ getv (printf "/hosts/%s/sid" .) }}
+{{- end }}
+# << ZK nodes. WARNING: this is managed by script and please don't touch manually.
+HOSTS_FILE
+mv $hostsFile.swap $hostsFile
+
+dumpFlags="-XX:HeapDumpPath=/data/zookeeper/dump/dump.hprof"
+{{- if eq "true" (getv "/env/zkAdminEnabled" "false") }}
+pushd /opt/zookeeper/current
+jarFiles="$(echo -n lib/slf4j-api*):zookeeper-$ZK_VERSION.jar"
+authFlags="-Dzookeeper.DigestAuthenticationProvider.superDigest=$(java -cp $jarFiles \
+           org.apache.zookeeper.server.auth.DigestAuthenticationProvider \
+           "{{ getv "/env/zkAdminUsername" "" }}:{{ getv "/env/zkAdminPassword" "" }}" | awk -F'->' '{print $2}')"
+popd
+{{- end }}
+
+roFlags="-Dreadonlymode.enabled={{ getv "/env/readonlymode.enabled" "false" }}"
+
+flush /opt/app/conf/zookeeper/java.env << ZK_JAVA_ENV_EOF
+SERVER_JVMFLAGS="$dumpFlags $authFlags $roFlags"
+ZK_SERVER_HEAP={{ sub (getv "/host/memory") 90 }}
+ZK_JAVA_ENV_EOF
+
+firstJoiningNode="${joiningNodes%% *}"
+
+flush /opt/app/conf/zookeeper/zoo.cfg << ZOO_CONF_EOF
+tickTime={{ getv "/env/tickTime" "2000" }}
+initLimit={{ getv "/env/initLimit" "10" }}
+syncLimit={{ getv "/env/syncLimit" "5" }}
+dataDir=/data/zookeeper
+clientPort={{ getv "/cluster/endpoints/client/port" "2181" }}
+maxClientCnxns={{ getv "/env/maxClientCnxns" "1000" }}
+autopurge.snapRetainCount={{ getv "/env/autopurge.snapRetainCount" "3" }}
+autopurge.purgeInterval={{ getv "/env/autopurge.purgeInterval" "0" }}
+4lw.commands.whitelist=mntr,{{ getv "/env/4lw.commands.whitelist" "" }}
+tcpKeepAlive={{ getv "/env/tcpKeepAlive" "false" }}
+
+{{- range $allNodes }}
+{{- if not ($joiningNodes | filter .) }}
+server.{{ if $usingGsid }}{{ getv (printf "/hosts/%s/gsid" .) }}{{ else }}{{ getv (printf "/hosts/%s/sid" .) }}{{ end }}={{ getv "/cluster/cluster_id" }}-{{ getv (printf "/hosts/%s/sid" .) }}:2888:3888
+{{- end }}
+{{- end }}
+
+{{- $mySid := getv "/host/sid" }}
+{{- range $joiningNodes }}
+{{- $sid := getv (printf "/adding-hosts/%s/sid" .) }}
+{{- if le $sid $mySid }}
+server.{{ $sid }}={{ getv "/cluster/cluster_id" }}-{{ $sid }}:2888:3888
+{{- end }}
+{{- end }}
+
+{{- if $joiningNodes }}
+{{- if and (not ($joiningNodes | filter (getv "/host/instance_id"))) (eq (sub (len $allNodes) (len $joiningNodes)) 1) }}
+server.${firstJoiningNode%%/*}={{ getv "/cluster/cluster_id" }}-${firstJoiningNode%%/*}:2888:3888
+{{- end }}
+{{- end }}
+ZOO_CONF_EOF
